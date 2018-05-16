@@ -21,6 +21,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
+import org.h2.security.auth.AuthenticationManager;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
 import org.h2.util.JdbcUtils;
@@ -538,6 +539,11 @@ public class Set extends Prepared {
         case SetTypes.COLUMN_NAME_RULES: {
             session.getUser().checkAdmin();
             session.getColumnNamerConfiguration().configure(expression.getColumnName());
+            break;
+        }
+        case SetTypes.AUTHENTICATOR: {
+            session.getUser().checkAdmin();
+            AuthenticationManager.getInstance().setAuthenticatorString(stringValue);
             break;
         }
         default:

@@ -562,6 +562,17 @@ public class SysProperties {
     public static final String CUSTOM_DATA_TYPES_HANDLER =
             Utils.getProperty("h2.customDataTypesHandler", null);
 
+    /**
+     * System property <code>h2.authenticatorClass</code>
+     * (default: null).<br />
+     * Authenticator change the way h2 validate credentials during login 
+     */
+    public static final String AUTHENTICATOR =
+            Utils.getProperty("h2.authenticator", null);
+
+    public static final boolean ALLOW_INTERNAL_USERS=
+    		Utils.getProperty("h2.allowInternalUsers", true);
+    
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {
