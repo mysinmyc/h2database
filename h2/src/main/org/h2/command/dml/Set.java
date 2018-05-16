@@ -543,7 +543,7 @@ public class Set extends Prepared {
         }
         case SetTypes.AUTHENTICATOR: {
             session.getUser().checkAdmin();
-            AuthenticationManager.getInstance().setAuthenticatorString(stringValue);
+            AuthenticationManager.getInstance().setAuthenticatorString( expression.getValue(session).getString());
             break;
         }
         default:

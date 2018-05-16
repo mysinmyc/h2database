@@ -69,7 +69,7 @@ public class AuthenticationManager {
     }
 
     /*
-     * by default initializes authenticator from h2.authenticator system propertye
+     * by default initializes authenticator from h2.authenticator system property
      */
     private void init() {
         if (initialized) {

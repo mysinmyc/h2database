@@ -19,19 +19,19 @@ import org.h2.security.auth.ConfigProperties;
 import org.h2.security.auth.spi.CredentialsValidator;
 
 /**
- * Validate credentials by using standard javax.security.auth API
+ * Validate credentials by using standard Java Authentication and Authorization Service 
  * 
  * configuration parameters:
- *    loginContextName = name of login context
+ *    appName = application name inside the JAAS configuration
  *
  */
-public class JavaxSecurityAuthCredentialsValidator implements CredentialsValidator {
+public class JaasCredentialsValidator implements CredentialsValidator {
 
-    String loginContextName;
+    String appName;
 
     @Override
     public void configure(ConfigProperties configProperties) {
-        loginContextName=configProperties.getStringValue("loginContextloginContextName",null);
+    	appName=configProperties.getStringValue("appName",null);
     }
 
     class AuthenticationInfoCallbackHandler implements CallbackHandler {
@@ -57,8 +57,9 @@ public class JavaxSecurityAuthCredentialsValidator implements CredentialsValidat
 
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws Exception {
-        LoginContext loginContext = new LoginContext(loginContextName,new AuthenticationInfoCallbackHandler(authenticationInfo));
+        LoginContext loginContext = new LoginContext(appName,new AuthenticationInfoCallbackHandler(authenticationInfo));
         loginContext.login();
+        authenticationInfo.setNestedIdentity(loginContext.getSubject());
         return true;
     }
 

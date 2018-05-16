@@ -10,7 +10,12 @@ import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
 import org.h2.security.auth.spi.CredentialsValidator;
 
-public class DummyCredentialsValidator implements CredentialsValidator {
+/**
+ * This credentials validator matches the user password with the configured 
+ * Usage should be limited to test purposes
+ *
+ */
+public class FixedPasswordCredentialsValidator implements CredentialsValidator {
     
     String password;
     
@@ -21,7 +26,7 @@ public class DummyCredentialsValidator implements CredentialsValidator {
 
     @Override
     public void configure(ConfigProperties configProperties) {
-        password=configProperties.getStringValue("password", "password");
+        password=configProperties.getStringValue("password");
     }
 
 }

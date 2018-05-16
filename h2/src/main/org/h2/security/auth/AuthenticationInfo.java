@@ -18,6 +18,11 @@ public class AuthenticationInfo {
 
     String realm;
 
+    /*
+     * Can be used by authenticator to hold informations
+     */
+    Object nestedIdentity;
+
     public AuthenticationInfo(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
         this.realm = connectionInfo.getProperty("AUTHREALM", null);
@@ -40,11 +45,6 @@ public class AuthenticationInfo {
         return connectionInfo;
     }
 
-    public void clean() {
-        this.password = null;
-        connectionInfo.cleanAuthenticationInfo();
-    }
-
     public String getFullyQualifiedName() {
         if (realm==null) {
            return connectionInfo.getUserName();
@@ -52,4 +52,27 @@ public class AuthenticationInfo {
            return (connectionInfo.getUserName()+"@"+realm).toUpperCase();
         }
     }
+
+    /**
+     * get nested identity
+     * @return
+     */
+    public Object getNestedIdentity() {
+        return nestedIdentity;
+    }
+
+    /**
+     * Method used by authenticators to hold informations about authenticated user
+     * @param nestedIdentity = nested identity object
+     */
+    public void setNestedIdentity(Object nestedIdentity) {
+        this.nestedIdentity = nestedIdentity;
+    }
+
+    public void clean() {
+        this.password = null;
+        this.nestedIdentity = null;
+        connectionInfo.cleanAuthenticationInfo();
+    }
+
 }

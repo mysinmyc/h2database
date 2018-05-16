@@ -45,13 +45,15 @@ public class LdapCredentialsValidator implements CredentialsValidator {
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws Exception {
         DirContext dirContext = null;
         try {
+            String dn=bindDnPattern.replace("%u", authenticationInfo.getUserName());
             Hashtable<String, String> env = new Hashtable<>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             env.put(Context.PROVIDER_URL, url);
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
-            env.put(Context.SECURITY_PRINCIPAL, bindDnPattern.replace("%u", authenticationInfo.getUserName()));
+            env.put(Context.SECURITY_PRINCIPAL, dn);
             env.put(Context.SECURITY_CREDENTIALS, authenticationInfo.getPassword());
             dirContext = new InitialDirContext(env);
+            authenticationInfo.setNestedIdentity(dn);
             return true;
         } finally {
             if (dirContext != null) {
