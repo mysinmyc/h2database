@@ -3,12 +3,15 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
-package org.h2.security.auth.spi;
+package org.h2.api;
 
 import org.h2.security.auth.AuthenticationInfo;
+import org.h2.security.auth.Configurable;
 
-/*
- * Interface to implement to validate user credentials
+/**
+ * A class that implement this interface can be used to validate
+ * credentials provided by client.
+ * It is users by DefaultAuthenticator
  */
 public interface CredentialsValidator extends Configurable {
 

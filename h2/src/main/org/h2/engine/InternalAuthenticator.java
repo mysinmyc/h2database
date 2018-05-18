@@ -5,12 +5,13 @@
  */
 package org.h2.engine;
 
+import org.h2.api.Authenticator;
+import org.h2.security.auth.AuthConfigException;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
-import org.h2.security.auth.spi.Authenticator;
 
 /**
- *	Default authentication implementation based on password hash stored in the database
+ *    Default authentication implementation based on password hash stored in the database
  */
 public class InternalAuthenticator implements Authenticator {
 
@@ -22,9 +23,13 @@ public class InternalAuthenticator implements Authenticator {
         if (user != null) {
             if (!user.validateUserPasswordHash(authenticationInfo.getConnectionInfo().getUserPasswordHash())) {
                 user = null;
-                }
+            }
         }
         return user;
+    }
+
+    @Override
+    public void init() throws AuthConfigException {
     }
 
 }

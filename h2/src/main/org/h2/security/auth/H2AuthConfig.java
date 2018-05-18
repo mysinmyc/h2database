@@ -6,6 +6,8 @@
 package org.h2.security.auth;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,6 +16,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Describe configuration of H2 authentication
+ */
 @XmlRootElement(name = "h2Auth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class H2AuthConfig {
@@ -36,6 +41,10 @@ public class H2AuthConfig {
         return createMissingRoles;
     }
 
+    public void setCreateMissingRoles(boolean createMissingRoles) {
+        this.createMissingRoles = createMissingRoles;
+    }
+
     @XmlElement(name = "validator")
     List<CredentialsValidatorConfig> validators;
 
@@ -44,6 +53,10 @@ public class H2AuthConfig {
             validators = new ArrayList<>();
         }
         return validators;
+    }
+
+    public void setValidators(List<CredentialsValidatorConfig> validators) {
+        this.validators = validators;
     }
 
     @XmlElement(name = "userToRolesMapper")
@@ -56,5 +69,7 @@ public class H2AuthConfig {
         return userToRolesMappers;
     }
 
-    
+    public void setUserToRolesMappers(List<UserToRolesMapperConfig> userToRolesMappers) {
+        this.userToRolesMappers = userToRolesMappers;
+    }
 }

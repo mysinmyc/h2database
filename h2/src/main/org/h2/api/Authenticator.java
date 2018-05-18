@@ -3,16 +3,16 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
-package org.h2.security.auth.spi;
+package org.h2.api;
 
 import org.h2.engine.Database;
 import org.h2.engine.User;
+import org.h2.security.auth.AuthConfigException;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 
 /**
- * Authenticator is responsible to validate user credentials (typically username
- * and password) and map credentials to a valid database user
+ * Low level interface to implement full authentication process
  */
 public interface Authenticator {
 
@@ -25,4 +25,11 @@ public interface Authenticator {
      * @throws AuthenticationException
      */
     User authenticate(AuthenticationInfo authenticationInfo, Database database) throws AuthenticationException;
+    
+    /**
+     * Initialize the authenticator. This method is invoked by AuthenticationManager
+     * when the authenticator is set
+     * @throws AuthConfigException
+     */
+    void init() throws AuthConfigException;
 }

@@ -7,33 +7,55 @@ package org.h2.security.auth;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.JAXB;
 
+import org.h2.api.Authenticator;
+import org.h2.api.CredentialsValidator;
+import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.User;
-import org.h2.security.auth.spi.Authenticator;
-import org.h2.security.auth.spi.CredentialsValidator;
-import org.h2.security.auth.spi.UserToRolesMapper;
+import org.h2.engine.UserBuilder;
+import org.h2.security.auth.impl.AssignRealmNameRole;
+import org.h2.security.auth.impl.JaasCredentialsValidator;
 
+/**
+ * Default implementation of authenticator.
+ * Credentials (typically user id and password) are validated by CredentialsValidators (one per realm).
+ * Rights on the database can be managed trough UserToRolesMapper.
+ *
+ */
 public class DefaultAuthenticator implements Authenticator {
 
-    Map<String, CredentialsValidator> validators;
-    List<UserToRolesMapper> userToRolesMappers;
+    Map<String, CredentialsValidator> validators = new HashMap<>();
+
+    List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
 
     boolean allowUserRegistration;
+
     boolean persistUsers;
 
+    /**
+     * If set save users externals defined during the authentication.
+     * @return
+     */
     public boolean isPersistUsers() {
         return persistUsers;
     }
 
+    /**
+     * If set create external users in the database if not present.
+     * @return
+     */
     public boolean isAllowUserRegistration() {
         return allowUserRegistration;
     }
@@ -42,32 +64,64 @@ public class DefaultAuthenticator implements Authenticator {
         this.allowUserRegistration = allowUserRegistration;
     }
 
+    /**
+     * When set create roles not found in the database. If not set
+     * roles not found in the database are silently skipped
+     * @return
+     */
     public boolean isCreateMissingRoles() {
         return createMissingRoles;
     }
 
     boolean createMissingRoles;
 
-    public DefaultAuthenticator() throws AuthConfigException{
-        init();
+    public DefaultAuthenticator() {
     }
 
-    void init() throws AuthConfigException{
+    /**
+     * Initializes the authenticator
+     * 
+     * order of initialization is
+     * 1. Check h2auth.configurationFile system property.
+     * 2. Check h2auth.xml in the classpath
+     * 3. Perform the default initialization 
+     * 
+     */
+    public void init() throws AuthConfigException{
+        URL h2AuthenticatorConfigurationUrl=null;
         try {
-            URL h2authenticatorUrl = Thread.currentThread().getContextClassLoader().getResource("h2auth.xml");
             String configFile = System.getProperty("h2auth.configurationFile", null);
             if (configFile != null) {
-                h2authenticatorUrl = new URL(configFile);
+                h2AuthenticatorConfigurationUrl = new URL(configFile);
             }
-            H2AuthConfig config = h2authenticatorUrl == null ? new H2AuthConfig()
-                    : JAXB.unmarshal(h2authenticatorUrl, H2AuthConfig.class);
-            configure(config);
+            if (h2AuthenticatorConfigurationUrl == null) {
+                h2AuthenticatorConfigurationUrl = Thread.currentThread().
+                    getContextClassLoader().getResource("h2auth.xml");
+            } 
+            if (h2AuthenticatorConfigurationUrl ==null) {
+                defaultConfiguration();
+            } else {
+                H2AuthConfig config = JAXB.unmarshal(h2AuthenticatorConfigurationUrl, H2AuthConfig.class);
+                configureFrom(config);
+            }
         } catch (Exception e) {
-            throw new AuthConfigException(e);
+            throw new AuthConfigException("Failed to configure authentication from "+h2AuthenticatorConfigurationUrl,e);
         }
     }
 
-    void configure(H2AuthConfig config) throws Exception {
+    void defaultConfiguration() {
+        createMissingRoles=false;
+        allowUserRegistration=true;
+        validators = new HashMap<>();
+        CredentialsValidator jaasCredentialsValidator = new JaasCredentialsValidator();
+        jaasCredentialsValidator.configure(new ConfigProperties());
+        validators.put("h2", jaasCredentialsValidator);
+        UserToRolesMapper assignRealmNameRole = new AssignRealmNameRole();
+        assignRealmNameRole.configure(new ConfigProperties());
+        userToRolesMappers.add(assignRealmNameRole);
+    }
+    
+    void configureFrom(H2AuthConfig config) throws Exception {
         allowUserRegistration = config.isAllowUserRegistration();
         createMissingRoles = config.isCreateMissingRoles();
         Map<String, CredentialsValidator> newValidators = new HashMap<>();
@@ -92,9 +146,9 @@ public class DefaultAuthenticator implements Authenticator {
 
     void updateRoles(AuthenticationInfo authenticationInfo, User user, Database database)
             throws AuthenticationException {
-        List<String> roles = new ArrayList<>();
+        Set<String> roles = new HashSet<>();
         for (UserToRolesMapper currentUserToRolesMapper : userToRolesMappers) {
-            Set<String> currentRoles = currentUserToRolesMapper.mapUserToRoles(authenticationInfo);
+            Collection<String> currentRoles = currentUserToRolesMapper.mapUserToRoles(authenticationInfo);
             if (currentRoles != null && currentRoles.isEmpty() == false) {
                 roles.addAll(currentRoles);
             }

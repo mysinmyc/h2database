@@ -5,10 +5,13 @@
  */
 package org.h2.security.auth.impl;
 
+import org.h2.api.CredentialsValidator;
+import org.h2.security.SHA256;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
-import org.h2.security.auth.spi.CredentialsValidator;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * This credentials validator matches the user password with the configured 
@@ -16,17 +19,27 @@ import org.h2.security.auth.spi.CredentialsValidator;
  *
  */
 public class FixedPasswordCredentialsValidator implements CredentialsValidator {
-    
+
     String password;
-    
+    byte[] salt;
+    byte[] hashWithSalt;
+
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws AuthenticationException {
-        return password.equals(authenticationInfo.getPassword());
+        if (password!=null) {
+            return password.equals(authenticationInfo.getPassword());
+        }
+        return Utils.compareSecure(hashWithSalt,SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(), salt));
     }
 
     @Override
     public void configure(ConfigProperties configProperties) {
-        password=configProperties.getStringValue("password");
+        password=configProperties.getStringValue("password",null);
+        if (password==null) {
+            byte[] hash = StringUtils.convertHexToBytes(configProperties.getStringValue("hash"));
+            salt = StringUtils.convertHexToBytes(configProperties.getStringValue("salt"));
+            hashWithSalt = SHA256.getHashWithSalt(hash, salt);
+        }
     }
 
 }

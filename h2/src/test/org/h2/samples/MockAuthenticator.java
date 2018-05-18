@@ -25,6 +25,7 @@ public class MockAuthenticator {
             + "<property name=\"secure\" value=\"false\" />" + "</validator>"
             + "<validator realmName=\"jaas\" className=\"org.h2.security.auth.impl.JaasCredentialsValidator\">"
             + "<property name=\"appName\" value=\"mockAuthenticator\" />" + "</validator>"
+            + "<userToRolesMapper className=\"org.h2.security.auth.impl.AssignRealmNameRole\"/>"
             + "<userToRolesMapper className=\"org.h2.security.auth.impl.StaticRolesMapper\">"
             + "<property name=\"roles\" value=\"remoteUser,mock\"/>" + "</userToRolesMapper>" + "</h2Auth>";
 

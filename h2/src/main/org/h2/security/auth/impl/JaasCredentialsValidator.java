@@ -14,15 +14,15 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginContext;
 
+import org.h2.api.CredentialsValidator;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
-import org.h2.security.auth.spi.CredentialsValidator;
 
 /**
  * Validate credentials by using standard Java Authentication and Authorization Service 
  * 
  * configuration parameters:
- *    appName = application name inside the JAAS configuration
+ *    appName = application name inside the JAAS configuration (by default h2)
  *
  */
 public class JaasCredentialsValidator implements CredentialsValidator {
@@ -31,7 +31,7 @@ public class JaasCredentialsValidator implements CredentialsValidator {
 
     @Override
     public void configure(ConfigProperties configProperties) {
-    	appName=configProperties.getStringValue("appName",null);
+    	appName=configProperties.getStringValue("appName","h2");
     }
 
     class AuthenticationInfoCallbackHandler implements CallbackHandler {

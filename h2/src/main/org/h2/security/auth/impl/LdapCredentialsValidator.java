@@ -11,9 +11,9 @@ import javax.naming.Context;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
+import org.h2.api.CredentialsValidator;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
-import org.h2.security.auth.spi.CredentialsValidator;
 
 /**
  * Validate credentials by performing an LDAP bind

@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UserToRolesMapperConfig {
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(required = true, name="class")
     String className;
 
     @XmlElement(name = "property")

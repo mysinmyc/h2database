@@ -5,15 +5,27 @@
  */
 package org.h2.security.auth;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * wrapper for configuration properties
+ */
 public class ConfigProperties {
 
     Map<String, String> properties;
 
-    public ConfigProperties(List<PropertyConfig> configProperties) {
+    public ConfigProperties() {
+       properties = new HashMap<>();
+    }
+    
+    public ConfigProperties(PropertyConfig...configProperties) {
+        this(configProperties==null?null:Arrays.asList(configProperties));
+    }
+    
+    public ConfigProperties(Collection<PropertyConfig> configProperties) {
         properties = new HashMap<>();
         if (properties != null) {
             for (PropertyConfig currentProperty : configProperties) {

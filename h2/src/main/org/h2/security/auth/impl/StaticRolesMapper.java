@@ -9,10 +9,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.h2.api.UserToRolesMapper;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
-import org.h2.security.auth.spi.UserToRolesMapper;
 
 /**
  * Assign static roles to authenticated users

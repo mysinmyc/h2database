@@ -3,9 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
-package org.h2.security.auth.spi;
-
-import org.h2.security.auth.ConfigProperties;
+package org.h2.security.auth;
 
 /**
  * describe how to perform objects runtime configuration

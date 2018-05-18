@@ -17,7 +17,6 @@ import org.h2.message.Trace;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.AuthenticationManager;
-import org.h2.security.auth.UserBuilder;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
@@ -75,7 +74,6 @@ public class Engine implements SessionFactory {
                     // the database is new (or not initialized correctly)
                     user = UserBuilder.buildUser(authenticationInfo, database, true);
                     user.setAdmin(true);
-                    user.setUserPasswordHash(ci.getUserPasswordHash());
                     database.setMasterUser(user);
                 }
                 if (!ci.isUnnamedInMemory()) {

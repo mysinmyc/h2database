@@ -19,7 +19,7 @@ public class CredentialsValidatorConfig {
     @XmlAttribute(required = true)
     String realmName;
 
-    @XmlAttribute(required = true)
+    @XmlAttribute(required = true, name="class")
     String className;
 
     @XmlElement(name = "property")

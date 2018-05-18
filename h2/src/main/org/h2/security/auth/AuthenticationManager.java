@@ -5,27 +5,27 @@
  */
 package org.h2.security.auth;
 
+import org.h2.api.Authenticator;
 import org.h2.engine.Database;
 import org.h2.engine.InternalAuthenticator;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.message.DbException;
-import org.h2.security.auth.spi.Authenticator;
 
 /**
  * Authentication manager is responsible for the authentication of incoming users starting from connection informations provided
  * 
  * by default it validate user and password hash locally
  * 
- * To support external authentication providers is 
- *    - configur
+ * External authentication can be enabled by setting system property h2.authenticator with one of the following value:
+ *    default = initialize default external authenticator {@link DefaultAuthenticator}
+ *    {class name} = initialize custom authenticator
+ *    
+ * At runtime is possible to temporary change the authentication by using SET AUTHENTICATOR statement
  */
 public class AuthenticationManager {
 
     private static AuthenticationManager INSTANCE = new AuthenticationManager();
-
-    private AuthenticationManager() {
-    }
 
     public static AuthenticationManager getInstance() {
         return INSTANCE;
@@ -35,7 +35,15 @@ public class AuthenticationManager {
 
     boolean initialized = false;
 
+    private AuthenticationManager() {
+    }
+
+    /**
+     * Set the authenticator for external users
+     * @param authenticator
+     */
     public void setAuthenticator(Authenticator authenticator) {
+        authenticator.init();
         this.authenticator = authenticator;
         initialized = true;
     }
@@ -45,11 +53,14 @@ public class AuthenticationManager {
             return null;
         }
         switch (authenticatorString) {
+        case "":
         case "no":
+        case "off":
         case "disable":
         case "false":
             return null;
         case "yes":
+        case "on":
         case "true":
         case "default":
             return "org.h2.security.auth.DefaultAuthenticator";
@@ -58,9 +69,13 @@ public class AuthenticationManager {
         }
     }
 
-    public void setAuthenticatorString(String authenticatorString) {
+    /**
+     * Set the external authenticator from a string value
+     * @param authenticatorStringValue
+     */
+    public void setAuthenticatorFromValue(String authenticatorStringValue) {
         try {
-            String authenticatorClassName=getAuthenticatorClassNameFrom(authenticatorString);
+            String authenticatorClassName=getAuthenticatorClassNameFrom(authenticatorStringValue);
             setAuthenticator(authenticatorClassName == null ? null
                     : (Authenticator) Class.forName(authenticatorClassName).newInstance());
         } catch (Exception e) {
@@ -68,14 +83,14 @@ public class AuthenticationManager {
         }
     }
 
-    /*
+    /**
      * by default initializes authenticator from h2.authenticator system property
      */
     private void init() {
         if (initialized) {
             return;
         }
-        setAuthenticatorString(SysProperties.AUTHENTICATOR);
+        setAuthenticatorFromValue(SysProperties.AUTHENTICATOR);
         initialized = true;
     }
 

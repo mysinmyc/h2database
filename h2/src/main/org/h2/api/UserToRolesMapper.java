@@ -3,14 +3,19 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
-package org.h2.security.auth.spi;
+package org.h2.api;
 
+import java.util.Collection;
 import java.util.Set;
+
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
+import org.h2.security.auth.Configurable;
 
 /**
- * Implement this interface to define roles granted to the user
+ * A class that implement this interface can be used during
+ * authentication to map external users to database roles.
+ * It is used by DefaultAuthenticator
  */
 public interface UserToRolesMapper extends Configurable {
 
@@ -20,5 +25,5 @@ public interface UserToRolesMapper extends Configurable {
      * @return list of roles to be assigned to the user temporary
      * @throws AuthenticationException
      */
-    Set<String> mapUserToRoles(AuthenticationInfo authenticationInfo) throws AuthenticationException;
+    Collection<String> mapUserToRoles(AuthenticationInfo authenticationInfo) throws AuthenticationException;
 }

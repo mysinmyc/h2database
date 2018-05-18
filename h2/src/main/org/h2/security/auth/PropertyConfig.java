@@ -9,6 +9,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
+/**
+ * Configuration property
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyConfig {
 
@@ -18,6 +21,13 @@ public class PropertyConfig {
     @XmlAttribute
     String value;
 
+    public PropertyConfig() {
+    }
+    
+    public PropertyConfig(String name, String value) {
+       this.name=name;
+       this.value=value;
+    }
     public String getName() {
         return name;
     }
