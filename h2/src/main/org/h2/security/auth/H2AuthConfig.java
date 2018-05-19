@@ -45,18 +45,18 @@ public class H2AuthConfig {
         this.createMissingRoles = createMissingRoles;
     }
 
-    @XmlElement(name = "validator")
-    List<CredentialsValidatorConfig> validators;
+    @XmlElement(name = "realm")
+    List<RealmConfig> realms;
 
-    public List<CredentialsValidatorConfig> getValidators() {
-        if (validators == null) {
-            validators = new ArrayList<>();
+    public List<RealmConfig> getRealms() {
+        if (realms == null) {
+            realms = new ArrayList<>();
         }
-        return validators;
+        return realms;
     }
 
-    public void setValidators(List<CredentialsValidatorConfig> validators) {
-        this.validators = validators;
+    public void setRealms(List<RealmConfig> realms) {
+        this.realms = realms;
     }
 
     @XmlElement(name = "userToRolesMapper")

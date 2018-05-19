@@ -14,32 +14,32 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CredentialsValidatorConfig {
+public class RealmConfig {
 
     @XmlAttribute(required = true)
-    String realmName;
+    String name;
 
-    @XmlAttribute(required = true, name="class")
-    String className;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @XmlAttribute(required = true)
+    String validatorClass;
+
+    public String getValidatorClass() {
+        return validatorClass;
+    }
+
+    public void setValidatorClass(String validatorClass) {
+        this.validatorClass = validatorClass;
+    }
 
     @XmlElement(name = "property")
     List<PropertyConfig> properties;
-
-    public String getRealmName() {
-        return realmName;
-    }
-
-    public void setRealmName(String realmName) {
-        this.realmName = realmName;
-    }
-
-    public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
-    }
 
     public List<PropertyConfig> getProperties() {
         if (properties == null) {

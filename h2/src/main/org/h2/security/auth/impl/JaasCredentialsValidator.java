@@ -29,9 +29,21 @@ public class JaasCredentialsValidator implements CredentialsValidator {
 
     String appName;
 
+    public JaasCredentialsValidator() {
+        this("h2");
+    }
+
+    /**
+     * Create the validator with the given name of JAAS configuration
+     * @param appName = name of JAAS configuration
+     */
+    public JaasCredentialsValidator(String appName) {
+        this.appName=appName;
+    }
+
     @Override
     public void configure(ConfigProperties configProperties) {
-    	appName=configProperties.getStringValue("appName","h2");
+    	appName=configProperties.getStringValue("appName",appName);
     }
 
     class AuthenticationInfoCallbackHandler implements CallbackHandler {

@@ -6,6 +6,7 @@
 package org.h2.security.auth.impl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,15 +23,25 @@ import org.h2.security.auth.ConfigProperties;
  */
 public class StaticRolesMapper implements UserToRolesMapper {
 
-    Set<String> roles;
+    Collection<String> roles;
+    
+    public StaticRolesMapper() {
+    }
+    
+    public StaticRolesMapper(String... roles) {
+        this.roles=Arrays.asList(roles);
+    }
     
     @Override
     public void configure(ConfigProperties configProperties) {
-        roles = new HashSet<>(Arrays.asList(configProperties.getStringValue("roles", "").split(",")));
+        String rolesString=configProperties.getStringValue("roles", "");
+        if (rolesString!=null) {
+            roles = new HashSet<>(Arrays.asList(rolesString.split(",")));
+        }
     }
 
     @Override
-    public Set<String> mapUserToRoles(AuthenticationInfo authenticationInfo) throws AuthenticationException {
+    public Collection<String> mapUserToRoles(AuthenticationInfo authenticationInfo) throws AuthenticationException {
         return roles;
     }
 

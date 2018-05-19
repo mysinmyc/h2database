@@ -6,6 +6,7 @@
 package org.h2.security.auth;
 
 import org.h2.engine.ConnectionInfo;
+import org.h2.util.StringUtils;
 
 /**
  * Input data for authenticators; it wraps ConnectionInfo
@@ -25,7 +26,7 @@ public class AuthenticationInfo {
 
     public AuthenticationInfo(ConnectionInfo connectionInfo) {
         this.connectionInfo = connectionInfo;
-        this.realm = connectionInfo.getProperty("AUTHREALM", null);
+        this.realm = StringUtils.toUpperEnglish(connectionInfo.getProperty("AUTHREALM", null));
         this.password = connectionInfo.getProperty("_PASSWORD", null);
     }
 
@@ -49,7 +50,7 @@ public class AuthenticationInfo {
         if (realm==null) {
            return connectionInfo.getUserName();
         } else {
-           return (connectionInfo.getUserName()+"@"+realm).toUpperCase();
+           return connectionInfo.getUserName()+"@"+realm;
         }
     }
 

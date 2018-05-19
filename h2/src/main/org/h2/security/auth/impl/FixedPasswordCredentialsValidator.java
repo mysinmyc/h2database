@@ -10,6 +10,7 @@ import org.h2.security.SHA256;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.ConfigProperties;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -24,6 +25,15 @@ public class FixedPasswordCredentialsValidator implements CredentialsValidator {
     byte[] salt;
     byte[] hashWithSalt;
 
+    public FixedPasswordCredentialsValidator() {
+    }
+    
+    public FixedPasswordCredentialsValidator(String password) {
+        salt=MathUtils.secureRandomBytes(256);
+        hashWithSalt=SHA256.getHashWithSalt(password.getBytes(), salt);
+    }
+    
+    
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws AuthenticationException {
         if (password!=null) {
@@ -34,11 +44,14 @@ public class FixedPasswordCredentialsValidator implements CredentialsValidator {
 
     @Override
     public void configure(ConfigProperties configProperties) {
-        password=configProperties.getStringValue("password",null);
-        if (password==null) {
-            byte[] hash = StringUtils.convertHexToBytes(configProperties.getStringValue("hash"));
-            salt = StringUtils.convertHexToBytes(configProperties.getStringValue("salt"));
-            hashWithSalt = SHA256.getHashWithSalt(hash, salt);
+        password=configProperties.getStringValue("password",password);
+        String saltString =configProperties.getStringValue("salt",null);
+        if (saltString!=null) {
+            salt=StringUtils.convertHexToBytes(saltString);
+        }
+        String hashString=configProperties.getStringValue("hash", null);
+        if (hashString!=null) {
+           hashWithSalt = SHA256.getHashWithSalt(StringUtils.convertHexToBytes(hashString), salt);
         }
     }
 

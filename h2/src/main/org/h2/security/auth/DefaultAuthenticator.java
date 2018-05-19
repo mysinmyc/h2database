@@ -36,7 +36,7 @@ import org.h2.security.auth.impl.JaasCredentialsValidator;
  */
 public class DefaultAuthenticator implements Authenticator {
 
-    Map<String, CredentialsValidator> validators = new HashMap<>();
+    Map<String, CredentialsValidator> realms = new HashMap<>();
 
     List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
 
@@ -44,12 +44,35 @@ public class DefaultAuthenticator implements Authenticator {
 
     boolean persistUsers;
 
+    boolean createMissingRoles;
+
+    boolean skipDefaultInitialization;
+    
+    /**
+     * Create the Authenticator with default configurations
+     */
+    public DefaultAuthenticator() {
+    }
+    
+    /**
+     * Create authenticator and optionally skip the default configuration. 
+     * This option is usefull when the authenticator is configured at code level 
+     * @param skipDefaultInitialization = if true default initialization is skipped
+     */
+    public DefaultAuthenticator(boolean skipDefaultInitialization) {
+        this.skipDefaultInitialization=skipDefaultInitialization;
+    }
+    
     /**
      * If set save users externals defined during the authentication.
      * @return
      */
     public boolean isPersistUsers() {
         return persistUsers;
+    }
+
+    public void setPersistUsers(boolean persistUsers) {
+        this.persistUsers = persistUsers;
     }
 
     /**
@@ -73,9 +96,27 @@ public class DefaultAuthenticator implements Authenticator {
         return createMissingRoles;
     }
 
-    boolean createMissingRoles;
+    public void setCreateMissingRoles(boolean createMissingRoles) {
+        this.createMissingRoles = createMissingRoles;
+    }
 
-    public DefaultAuthenticator() {
+    public void addRealm(String name, CredentialsValidator credentialsValidator) {
+        realms.put(name.toUpperCase(), credentialsValidator);
+    }
+    /**
+     * UserToRoleMappers assign roles to authenticated users
+     * @return current UserToRoleMappers active
+     */
+    public List<UserToRolesMapper> getUserToRolesMappers() {
+        return userToRolesMappers;
+    }
+
+    public void setUserToRolesMappers(UserToRolesMapper... userToRolesMappers) {
+        List<UserToRolesMapper> userToRolesMappersList = new ArrayList<>();
+        for ( UserToRolesMapper current : userToRolesMappers) {
+            userToRolesMappersList.add(current);
+        }
+        this.userToRolesMappers = userToRolesMappersList;
     }
 
     /**
@@ -88,6 +129,9 @@ public class DefaultAuthenticator implements Authenticator {
      * 
      */
     public void init() throws AuthConfigException{
+        if (skipDefaultInitialization) {
+            return;
+        }
         URL h2AuthenticatorConfigurationUrl=null;
         try {
             String configFile = System.getProperty("h2auth.configurationFile", null);
@@ -112,10 +156,10 @@ public class DefaultAuthenticator implements Authenticator {
     void defaultConfiguration() {
         createMissingRoles=false;
         allowUserRegistration=true;
-        validators = new HashMap<>();
+        realms = new HashMap<>();
         CredentialsValidator jaasCredentialsValidator = new JaasCredentialsValidator();
         jaasCredentialsValidator.configure(new ConfigProperties());
-        validators.put("h2", jaasCredentialsValidator);
+        realms.put("h2", jaasCredentialsValidator);
         UserToRolesMapper assignRealmNameRole = new AssignRealmNameRole();
         assignRealmNameRole.configure(new ConfigProperties());
         userToRolesMappers.add(assignRealmNameRole);
@@ -124,16 +168,16 @@ public class DefaultAuthenticator implements Authenticator {
     void configureFrom(H2AuthConfig config) throws Exception {
         allowUserRegistration = config.isAllowUserRegistration();
         createMissingRoles = config.isCreateMissingRoles();
-        Map<String, CredentialsValidator> newValidators = new HashMap<>();
-        for (CredentialsValidatorConfig currentValidatorConfig : config.getValidators()) {
+        Map<String, CredentialsValidator> newRealms = new HashMap<>();
+        for (RealmConfig currentRealmConfig : config.getRealms()) {
             CredentialsValidator currentValidator = (CredentialsValidator) Class
-                    .forName(currentValidatorConfig.getClassName()).newInstance();
-            currentValidator.configure(new ConfigProperties(currentValidatorConfig.getProperties()));
-            if (newValidators.put(currentValidatorConfig.getRealmName(), currentValidator) != null) {
-                throw new Exception("Duplicate realm " + currentValidatorConfig.getRealmName());
+                    .forName(currentRealmConfig.getValidatorClass()).newInstance();
+            currentValidator.configure(new ConfigProperties(currentRealmConfig.getProperties()));
+            if (newRealms.put(currentRealmConfig.getName().toUpperCase(), currentValidator) != null) {
+                throw new Exception("Duplicate realm " + currentRealmConfig.getName());
             }
         }
-        this.validators = newValidators;
+        this.realms = newRealms;
         List<UserToRolesMapper> newUserToRolesMapper = new ArrayList<>();
         for (UserToRolesMapperConfig currentUserToRolesMapperConfig : config.getUserToRolesMappers()) {
             UserToRolesMapper currentUserToRolesMapper = (UserToRolesMapper) Class
@@ -184,7 +228,7 @@ public class DefaultAuthenticator implements Authenticator {
         if (user == null && isAllowUserRegistration() == false) {
             throw new AuthenticationException("User " + userName + " not found in db");
         }
-        CredentialsValidator validator = validators.get(authenticationInfo.getRealm());
+        CredentialsValidator validator = realms.get(authenticationInfo.getRealm());
         if (validator == null) {
             throw new AuthenticationException("realm " + authenticationInfo.getRealm() + " not configured");
         }

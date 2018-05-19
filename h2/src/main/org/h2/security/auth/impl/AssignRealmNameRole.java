@@ -17,9 +17,17 @@ public class AssignRealmNameRole implements UserToRolesMapper{
 
     String roleNameFormat;
 
+    public AssignRealmNameRole() {
+        this("@%s");
+    }
+    
+    public AssignRealmNameRole(String roleNameFormat) {
+        this.roleNameFormat = roleNameFormat;
+    }
+    
     @Override
     public void configure(ConfigProperties configProperties) {
-    	roleNameFormat=configProperties.getStringValue("roleNameFormat", "@%s");
+    	roleNameFormat=configProperties.getStringValue("roleNameFormat",roleNameFormat);
     }
 
     @Override
