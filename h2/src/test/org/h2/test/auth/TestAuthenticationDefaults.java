@@ -5,31 +5,16 @@
  */
 package org.h2.test.auth;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Properties;
 
-import javax.security.auth.login.AppConfigurationEntry;
-import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
 
 import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Database;
 import org.h2.engine.Engine;
 import org.h2.engine.Role;
-import org.h2.engine.Session;
-import org.h2.engine.User;
-import org.h2.security.auth.AuthenticationManager;
 import org.h2.security.auth.DefaultAuthenticator;
-import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
-import org.h2.security.auth.impl.StaticRolesMapper;
 import org.h2.test.TestBase;
-import org.h2.util.MathUtils;
-import org.postgresql.core.Utils;
 
 public class TestAuthenticationDefaults extends TestAuthentication {
 
@@ -60,38 +45,13 @@ public class TestAuthenticationDefaults extends TestAuthentication {
             configureJaas();
             Properties properties = new Properties();
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
-            Session session = Engine.getInstance().createSession(connectionInfo);
-            Database database = session.getDatabase();
-            Role externalRole = new Role(database, database.allocateObjectId(), "@" + getRealmName().toUpperCase(),
-                    false);
-            session.getDatabase().addDatabaseObject(session, externalRole);
-            session.commit(false);
+            session = Engine.getInstance().createSession(connectionInfo);
+            database = session.getDatabase();
             try {
-                try {
-                    Connection wrongLoginConnection = DriverManager.getConnection(getDatabaseURL(), getExternalUser(),
-                            "");
-                    wrongLoginConnection.close();
-                    throw new Exception("user should not be able to login with an invalid password");
-                } catch (SQLException e) {
-                }
-                try {
-                    Connection wrongLoginConnection = DriverManager.getConnection(
-                            getDatabaseURL().replaceAll("AUTHREALM=.*$", ""), getExternalUser(),
-                            getExternalUserPassword());
-                    wrongLoginConnection.close();
-                    throw new Exception("user should not be able to login without a realm");
-                } catch (SQLException e) {
-                }
-                Connection rightConnection = DriverManager.getConnection(getDatabaseURL(), getExternalUser(),
-                        getExternalUserPassword());
-                try {
-                    User user = session.getDatabase()
-                            .findUser((getExternalUser() + "@" + getRealmName()).toUpperCase());
-                    assertNotNull(user);
-                    assertTrue(user.isRoleGranted(externalRole));
-                } finally {
-                    rightConnection.close();
-                }
+                testInvalidPassword();
+                testExternalUserWihoutRealm();
+                testExternalUser();
+                testAssignRealNameRole();
             } finally {
                 session.close();
             }

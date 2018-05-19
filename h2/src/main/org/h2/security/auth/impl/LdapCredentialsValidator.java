@@ -52,6 +52,9 @@ public class LdapCredentialsValidator implements CredentialsValidator {
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
             env.put(Context.SECURITY_PRINCIPAL, dn);
             env.put(Context.SECURITY_CREDENTIALS, authenticationInfo.getPassword());
+            if (secure) {
+                env.put(Context.SECURITY_PROTOCOL,"ssl");
+            }
             dirContext = new InitialDirContext(env);
             authenticationInfo.setNestedIdentity(dn);
             return true;

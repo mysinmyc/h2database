@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Describe configuration of H2 authentication
+ * Describe configuration of H2 DefaultAuthenticator
  */
 @XmlRootElement(name = "h2Auth")
 @XmlAccessorType(XmlAccessType.FIELD)
