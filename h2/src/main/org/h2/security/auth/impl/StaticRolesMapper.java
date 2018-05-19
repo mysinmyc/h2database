@@ -8,7 +8,6 @@ package org.h2.security.auth.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.h2.api.UserToRolesMapper;
 import org.h2.security.auth.AuthenticationException;

@@ -7,7 +7,6 @@ package org.h2.security.auth;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +35,8 @@ import org.h2.security.auth.impl.JaasCredentialsValidator;
  */
 public class DefaultAuthenticator implements Authenticator {
 
+    public static final String DEFAULT_REALMNAME="H2";
+
     Map<String, CredentialsValidator> realms = new HashMap<>();
 
     List<UserToRolesMapper> userToRolesMappers = new ArrayList<>();
@@ -56,7 +57,7 @@ public class DefaultAuthenticator implements Authenticator {
     
     /**
      * Create authenticator and optionally skip the default configuration. 
-     * This option is usefull when the authenticator is configured at code level 
+     * This option is useful when the authenticator is configured at code level 
      * @param skipDefaultInitialization = if true default initialization is skipped
      */
     public DefaultAuthenticator(boolean skipDefaultInitialization) {
@@ -159,7 +160,7 @@ public class DefaultAuthenticator implements Authenticator {
         realms = new HashMap<>();
         CredentialsValidator jaasCredentialsValidator = new JaasCredentialsValidator();
         jaasCredentialsValidator.configure(new ConfigProperties());
-        realms.put("h2", jaasCredentialsValidator);
+        realms.put(DEFAULT_REALMNAME, jaasCredentialsValidator);
         UserToRolesMapper assignRealmNameRole = new AssignRealmNameRole();
         assignRealmNameRole.configure(new ConfigProperties());
         userToRolesMappers.add(assignRealmNameRole);
@@ -170,8 +171,18 @@ public class DefaultAuthenticator implements Authenticator {
         createMissingRoles = config.isCreateMissingRoles();
         Map<String, CredentialsValidator> newRealms = new HashMap<>();
         for (RealmConfig currentRealmConfig : config.getRealms()) {
-            CredentialsValidator currentValidator = (CredentialsValidator) Class
+            String currentRealmName=currentRealmConfig.getName();
+            if (currentRealmName==null) {
+                throw new Exception("Missing realm name");
+            }
+            currentRealmName=currentRealmName.toUpperCase();
+            CredentialsValidator currentValidator =null;
+            try {
+                currentValidator = (CredentialsValidator) Class
                     .forName(currentRealmConfig.getValidatorClass()).newInstance();
+            } catch (Exception e) {
+                throw new Exception("invalid validator class fo realm "+currentRealmName,e);
+            }
             currentValidator.configure(new ConfigProperties(currentRealmConfig.getProperties()));
             if (newRealms.put(currentRealmConfig.getName().toUpperCase(), currentValidator) != null) {
                 throw new Exception("Duplicate realm " + currentRealmConfig.getName());
@@ -180,8 +191,13 @@ public class DefaultAuthenticator implements Authenticator {
         this.realms = newRealms;
         List<UserToRolesMapper> newUserToRolesMapper = new ArrayList<>();
         for (UserToRolesMapperConfig currentUserToRolesMapperConfig : config.getUserToRolesMappers()) {
-            UserToRolesMapper currentUserToRolesMapper = (UserToRolesMapper) Class
-                    .forName(currentUserToRolesMapperConfig.getClassName()).newInstance();
+            UserToRolesMapper currentUserToRolesMapper=null;
+            try {
+                currentUserToRolesMapper = (UserToRolesMapper) Class
+                        .forName(currentUserToRolesMapperConfig.getClassName()).newInstance();
+            }catch (Exception e) {
+                throw new Exception("Invalid class in UserToRolesMapperConfig",e);
+            }
             currentUserToRolesMapper.configure(new ConfigProperties(currentUserToRolesMapperConfig.getProperties()));
             newUserToRolesMapper.add(currentUserToRolesMapper);
         }

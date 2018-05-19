@@ -27,10 +27,12 @@ import org.h2.security.auth.ConfigProperties;
  */
 public class JaasCredentialsValidator implements CredentialsValidator {
 
+    public static final String DEFAULT_APPNAME="h2";
+
     String appName;
 
     public JaasCredentialsValidator() {
-        this("h2");
+        this(DEFAULT_APPNAME);
     }
 
     /**

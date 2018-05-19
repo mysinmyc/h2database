@@ -31,7 +31,7 @@ import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
 import org.postgresql.core.Utils;
 
-public class TestJaasAuthentication extends TestBase {
+public class TestAuthentication extends TestBase {
 
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
@@ -58,7 +58,7 @@ public class TestJaasAuthentication extends TestBase {
         return "staticRole";
     }
 
-    private void configureAuthentication() {
+    void configureAuthentication() {
         DefaultAuthenticator defaultAuthenticator = new DefaultAuthenticator(true);
         defaultAuthenticator.setAllowUserRegistration(true);
         defaultAuthenticator.setCreateMissingRoles(true);
@@ -67,7 +67,7 @@ public class TestJaasAuthentication extends TestBase {
         AuthenticationManager.getInstance().setAuthenticator(defaultAuthenticator);
     }
 
-    private void configureJaas() {
+    void configureJaas() {
         final Configuration innerConfiguration = Configuration.getConfiguration();
         Configuration.setConfiguration(new Configuration() {
             @Override

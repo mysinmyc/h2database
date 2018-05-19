@@ -2,6 +2,12 @@ package org.h2.samples;
 
 import java.io.File;
 import java.io.FileWriter;
+
+import org.h2.security.auth.impl.AssignRealmNameRole;
+import org.h2.security.auth.impl.FixedPasswordCredentialsValidator;
+import org.h2.security.auth.impl.JaasCredentialsValidator;
+import org.h2.security.auth.impl.LdapCredentialsValidator;
+import org.h2.security.auth.impl.StaticRolesMapper;
 import org.h2.server.ShutdownHandler;
 import org.h2.tools.Server;
 
@@ -17,17 +23,18 @@ import org.h2.tools.Server;
 public class MockAuthenticator {
 
     static final String CONFIGURATION = "<h2Auth allowUserRegistration=\"true\" createMissingRoles=\"true\">"
-            + "<validator realmName=\"mock\" className=\"org.h2.security.auth.impl.FixedPasswordCredentialsValidator\">"
-            + "<property name=\"password\" value=\"mock\" />" + "</validator>"
-            + "<validator realmName=\"ldap\" className=\"org.h2.security.auth.impl.LdapCredentialsValidator\">"
+            + "<realm name=\"mock\" validatorClass=\""+FixedPasswordCredentialsValidator.class.getName()+"\">"
+            + "<property name=\"password\" value=\"mock\" />" + "</realm>"
+            + "<realm name=\"ldap\" validatorClass=\""+LdapCredentialsValidator.class.getName()+"\">"
             + "<property name=\"bindDnPattern\" value=\"uid=%u,ou=people,dc=example,dc=com\" />"
             + "<property name=\"host\" value=\"127.0.0.1\" />" + "<property name=\"port\" value=\"10389\" />"
-            + "<property name=\"secure\" value=\"false\" />" + "</validator>"
-            + "<validator realmName=\"jaas\" className=\"org.h2.security.auth.impl.JaasCredentialsValidator\">"
-            + "<property name=\"appName\" value=\"mockAuthenticator\" />" + "</validator>"
-            + "<userToRolesMapper className=\"org.h2.security.auth.impl.AssignRealmNameRole\"/>"
-            + "<userToRolesMapper className=\"org.h2.security.auth.impl.StaticRolesMapper\">"
-            + "<property name=\"roles\" value=\"remoteUser,mock\"/>" + "</userToRolesMapper>" + "</h2Auth>";
+            + "<property name=\"secure\" value=\"false\" />" + "</realm>"
+            + "<realm name=\"jaas\" validatorClass=\""+JaasCredentialsValidator.class.getName()+"\">"
+            + "<property name=\"appName\" value=\"mockAuthenticator\" />" + "</realm>"
+            + "<userToRolesMapper class=\""+AssignRealmNameRole.class.getName()+"\"/>"
+            + "<userToRolesMapper class=\""+StaticRolesMapper.class.getName()+"\">"
+            + "<property name=\"roles\" value=\"remoteUser,mock\"/>" + "</userToRolesMapper>" 
+            + "</h2Auth>";
 
     public static final String JAAS_CONF = "mockAuthenticator {\n"
             + "com.sun.security.auth.module.LdapLoginModule REQUIRED " + "userProvider=\"ldap://127.0.0.1:10389\" "

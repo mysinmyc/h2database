@@ -20,8 +20,6 @@ import org.h2.message.DbException;
  * External authentication can be enabled by setting system property h2.authenticator with one of the following value:
  *    default = initialize default external authenticator {@link DefaultAuthenticator}
  *    {class name} = initialize custom authenticator
- *    
- * At runtime is possible to temporary change the authentication by using SET AUTHENTICATOR statement
  */
 public class AuthenticationManager {
 
