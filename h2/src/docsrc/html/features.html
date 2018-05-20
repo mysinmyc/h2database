@@ -1830,24 +1830,25 @@ is listed.
 </p>
 <h2 id="external_authentication">External authentication</h2>
 <p>
-By default credentials validation is performed inside the database
+External authentication allows to optionally validate user credentials externally (JAAS,LDAP,custom classes).
+Is also possible to temporary assign roles to to externally authenticated users
+
+</p>
+<p>Master user cannot be externally authenticated</p>
+<p>
+To enable external authentication on a database execute statement <code>SET AUTHENTICATOR='on'</code>. This setting in persisted on the database. 
 </p>
 <p>
-External authentication allows to validate user credentials externally (JAAS,LDAP,custom classes).
-By default users are defined as temporary. Authenticator allow by default to assign roles to externally authenticated users
+To connect on a database by using external credentials client must append <code>AUTHREALM=H2</code> to the database URL. <code>H2</code>
+is the identifier of the authentication realm (see later).
 </p>
+<p>External authentication requires to send password to the server. For this reason is works only on local connection or remote over ssl</p>
 <p>
-How to enable external authentication:
-</p>
-<ul>
-<li>on server side set custom property <code>-Dh2.authenticator=default</code> in the java arguments</li>
-<li>client must append <code>AUTHREALM=H2</code> to the database URL</li>
-<li>database should be local or connection must be over SSL (because password is sent to the server)</li>
-<li>
-By default external authentication is performed trough JAAS login interface (configuration name is H2).
+By default external authentication is performed trough JAAS login interface (configuration name is <code>h2</code>).
 To configure JAAS add argument <code>-Djava.security.auth.login.config=jaas.conf</code>
 Here an example of <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jgss/tutorials/LoginConfigFile.html">
 JAAS login configuration file</a> content:
+</p>
 <pre>
 h2 {
  com.sun.security.auth.module.LdapLoginModule REQUIRED \
@@ -1855,10 +1856,8 @@ h2 {
    debug=true useSSL=false ;
 };
 </pre>
-</li>
-</ul>
 <p>
-Is it possible to specify custom authentication by putting <code>h2auth.xml</code> file in the classpath or by using
+Is it possible to specify custom authentication settings by putting <code>h2auth.xml</code> file in the classpath or by using
 JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an example of h2auth.xml file content:
 </p>
 <pre>
@@ -1896,11 +1895,11 @@ JVM argument <code>-Dh2auth.configurationFile={urlOfH2Auth.xml}</code>. Here an 
 &lt;/h2Auth&gt;
 </pre>
 <p>
-Is it possible to develop custom credentials validators by implementing interface
+Custom credentials validators must implement the interface
 <code>org.h2.api.CredentialsValidator</code>
 </p>
 <p>
-To define custom criteria for role assignments implement the interface
+Custom criteria for role assignments must implement the interface
 <code>org.h2.api.UserToRoleMapper</code>
 </p>
 

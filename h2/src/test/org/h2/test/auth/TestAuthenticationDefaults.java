@@ -9,9 +9,15 @@ import java.util.Properties;
 
 import javax.security.auth.login.Configuration;
 
+import org.h2.api.Authenticator;
 import org.h2.engine.ConnectionInfo;
+import org.h2.engine.Database;
 import org.h2.engine.Engine;
 import org.h2.engine.Role;
+import org.h2.engine.User;
+import org.h2.security.auth.AuthConfigException;
+import org.h2.security.auth.AuthenticationException;
+import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.DefaultAuthenticator;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
 import org.h2.test.TestBase;
@@ -33,20 +39,20 @@ public class TestAuthenticationDefaults extends TestAuthentication {
     }
 
     @Override
-    void configureAuthentication() {
-        System.setProperty("h2.authenticator","on");
+    void configureAuthentication(Database database) {
+        database.setAuthenticator(new DefaultAuthenticator());
     }
 
     @Override
     public void test() throws Exception {
         Configuration oldConfiguration = Configuration.getConfiguration();
         try {
-            configureAuthentication();
             configureJaas();
             Properties properties = new Properties();
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
             session = Engine.getInstance().createSession(connectionInfo);
             database = session.getDatabase();
+            configureAuthentication(database);
             try {
                 testInvalidPassword();
                 testExternalUserWihoutRealm();

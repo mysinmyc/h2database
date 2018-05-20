@@ -65,7 +65,6 @@ public class MockAuthenticator {
         try (FileWriter writer = new FileWriter(configFile)) {
             writer.write(H2AUTH_XML);
         }
-        System.setProperty("h2.authenticator", "default");
         System.setProperty("h2auth.configurationFile", configFile.toURI().toString());
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override

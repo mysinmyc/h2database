@@ -19,4 +19,5 @@ public class UserBuilder {
         user.setTemporary(persistent == false);
         return user;
     }
+
 }

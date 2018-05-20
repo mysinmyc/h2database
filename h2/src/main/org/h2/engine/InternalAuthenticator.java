@@ -11,7 +11,7 @@ import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 
 /**
- *    Default authentication implementation based on password hash stored in the database
+ *    Default authentication implementation. It validate user and password internally on database
  */
 public class InternalAuthenticator implements Authenticator {
 
@@ -29,7 +29,7 @@ public class InternalAuthenticator implements Authenticator {
     }
 
     @Override
-    public void init() throws AuthConfigException {
+    public void init(Database database) throws AuthConfigException {
     }
 
 }

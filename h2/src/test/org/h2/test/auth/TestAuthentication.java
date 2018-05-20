@@ -21,7 +21,6 @@ import org.h2.engine.Engine;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.engine.User;
-import org.h2.security.auth.AuthenticationManager;
 import org.h2.security.auth.DefaultAuthenticator;
 import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
@@ -60,7 +59,7 @@ public class TestAuthentication extends TestBase {
 
     DefaultAuthenticator defaultAuthenticator;
 
-    void configureAuthentication() {
+    void configureAuthentication(Database database) {
         defaultAuthenticator = new DefaultAuthenticator(true);
         defaultAuthenticator.setAllowUserRegistration(true);
         defaultAuthenticator.setCreateMissingRoles(true);
@@ -69,7 +68,7 @@ public class TestAuthentication extends TestBase {
                 new StaticUserCredentialsValidator("staticuser[0-9]", "staticpassword"));
         defaultAuthenticator.setUserToRolesMappers(new AssignRealmNameRole("@%s"),
                 new StaticRolesMapper(getStaticRoleName()));
-        AuthenticationManager.getInstance().setAuthenticator(defaultAuthenticator);
+        database.setAuthenticator(defaultAuthenticator);
     }
 
     void configureJaas() {
@@ -103,12 +102,12 @@ public class TestAuthentication extends TestBase {
     public void test() throws Exception {
         Configuration oldConfiguration = Configuration.getConfiguration();
         try {
-            configureAuthentication();
             configureJaas();
             Properties properties = new Properties();
             ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL(), properties);
             session = Engine.getInstance().createSession(connectionInfo);
             database = session.getDatabase();
+            configureAuthentication(database);
             try {
                 allTests();
             } finally {

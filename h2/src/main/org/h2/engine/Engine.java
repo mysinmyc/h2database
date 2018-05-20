@@ -16,7 +16,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
-import org.h2.security.auth.AuthenticationManager;
 import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.util.MathUtils;
@@ -72,8 +71,10 @@ public class Engine implements SessionFactory {
                 if (database.getAllUsers().isEmpty()) {
                     // users is the last thing we add, so if no user is around,
                     // the database is new (or not initialized correctly)
-                    user = UserBuilder.buildUser(authenticationInfo, database, true);
+                    user = new User(database, database.allocateObjectId(),
+                            ci.getUserName(), false);
                     user.setAdmin(true);
+                    user.setUserPasswordHash(ci.getUserPasswordHash());
                     database.setMasterUser(user);
                 }
                 if (!ci.isUnnamedInMemory()) {
@@ -93,7 +94,7 @@ public class Engine implements SessionFactory {
         if (user == null) {
             if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
                 try {
-                    user = AuthenticationManager.getInstance().authenticate(authenticationInfo, database);
+                    user = database.getAuthenticator().authenticate(authenticationInfo, database);
                 } catch (AuthenticationException authenticationError) {
                     database.getTrace(Trace.DATABASE).error(authenticationError,
                         "an error occurred during authentication; user: \"" +

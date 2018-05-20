@@ -26,10 +26,12 @@ public interface Authenticator {
      */
     User authenticate(AuthenticationInfo authenticationInfo, Database database) throws AuthenticationException;
     
+
     /**
-     * Initialize the authenticator. This method is invoked by AuthenticationManager
-     * when the authenticator is set
+     * Initialize the authenticator. This method is invoked by databases when the authenticator is set
+     * when the authenticator is set.
+     * @param database = target database
      * @throws AuthConfigException
      */
-    void init() throws AuthConfigException;
+    void init(Database database) throws AuthConfigException;
 }

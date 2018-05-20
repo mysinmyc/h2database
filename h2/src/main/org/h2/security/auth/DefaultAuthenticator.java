@@ -20,6 +20,7 @@ import org.h2.api.Authenticator;
 import org.h2.api.CredentialsValidator;
 import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
+import org.h2.engine.InternalAuthenticator;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.User;
@@ -49,6 +50,8 @@ public class DefaultAuthenticator implements Authenticator {
     boolean createMissingRoles;
 
     boolean skipDefaultInitialization;
+
+    boolean initialized;
 
     /**
      * Create the Authenticator with default configurations
@@ -140,33 +143,45 @@ public class DefaultAuthenticator implements Authenticator {
      * Initializes the authenticator (it is called by AuthententicationManager)
      * 
      * this method is skipped if skipDefaultInitialization is set
-     * 
-     * order of initialization is 1. Check h2auth.configurationFile system property.
-     * 2. Check h2auth.xml in the classpath 3. Perform the default hard coded
+     * Order of initialization is 
+     *    1. Check h2auth.configurationFile system property.
+     *    2. Check h2auth.xml in the classpath 
+     *    3. Use the default configuration hard coded
      * initialization
+     * @param database
+     * @throws AuthConfigException
      */
-    public void init() throws AuthConfigException {
+    public void init(Database database) throws AuthConfigException {
         if (skipDefaultInitialization) {
             return;
         }
-        URL h2AuthenticatorConfigurationUrl = null;
-        try {
-            String configFile = System.getProperty("h2auth.configurationFile", null);
-            if (configFile != null) {
-                h2AuthenticatorConfigurationUrl = new URL(configFile);
+        if (initialized) {
+            return;
+        }
+        synchronized (this) {
+            if (initialized) {
+                return;
             }
-            if (h2AuthenticatorConfigurationUrl == null) {
-                h2AuthenticatorConfigurationUrl = Thread.currentThread().getContextClassLoader()
-                        .getResource("h2auth.xml");
+            URL h2AuthenticatorConfigurationUrl = null;
+            try {
+                String configFile = System.getProperty("h2auth.configurationFile", null);
+                if (configFile != null) {
+                    h2AuthenticatorConfigurationUrl = new URL(configFile);
+                }
+                if (h2AuthenticatorConfigurationUrl == null) {
+                    h2AuthenticatorConfigurationUrl = Thread.currentThread().getContextClassLoader()
+                            .getResource("h2auth.xml");
+                }
+                if (h2AuthenticatorConfigurationUrl == null) {
+                    defaultConfiguration();
+                } else {
+                    configureFromUrl(h2AuthenticatorConfigurationUrl);
+                }
+            } catch (Exception e) {
+                throw new AuthConfigException("Failed to configure authentication from " + h2AuthenticatorConfigurationUrl,
+                        e);
             }
-            if (h2AuthenticatorConfigurationUrl == null) {
-                defaultConfiguration();
-            } else {
-                configureFromUrl(h2AuthenticatorConfigurationUrl);
-            }
-        } catch (Exception e) {
-            throw new AuthConfigException("Failed to configure authentication from " + h2AuthenticatorConfigurationUrl,
-                    e);
+            initialized=true;
         }
     }
 
@@ -271,6 +286,10 @@ public class DefaultAuthenticator implements Authenticator {
     @Override
     public final User authenticate(AuthenticationInfo authenticationInfo, Database database)
             throws AuthenticationException {
+        //Allows internal users authentication
+        if (authenticationInfo.getRealm()==null) {
+            return InternalAuthenticator.INSTANCE.authenticate(authenticationInfo, database);
+        }
         String userName = authenticationInfo.getFullyQualifiedName();
         User user = database.findUser(userName);
         if (user == null && isAllowUserRegistration() == false) {
