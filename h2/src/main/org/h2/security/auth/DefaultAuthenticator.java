@@ -25,6 +25,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.User;
 import org.h2.engine.UserBuilder;
+import org.h2.message.Trace;
 import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
 import org.h2.util.StringUtils;
@@ -162,22 +163,35 @@ public class DefaultAuthenticator implements Authenticator {
             if (initialized) {
                 return;
             }
+            Trace trace=database.getTrace(Trace.DATABASE);
             URL h2AuthenticatorConfigurationUrl = null;
             try {
                 String configFile = System.getProperty("h2auth.configurationFile", null);
                 if (configFile != null) {
+                    if (trace.isDebugEnabled()) {
+                       trace.debug("DefaultAuthenticator.config: configuration read from system property h2auth.configurationfile={0}", configFile);
+                    }
                     h2AuthenticatorConfigurationUrl = new URL(configFile);
                 }
                 if (h2AuthenticatorConfigurationUrl == null) {
                     h2AuthenticatorConfigurationUrl = Thread.currentThread().getContextClassLoader()
                             .getResource("h2auth.xml");
+                    if (h2AuthenticatorConfigurationUrl!=null) {
+                        if (trace.isDebugEnabled()) {
+                            trace.debug("DefaultAuthenticator.config: configuration read from classpath {0}", h2AuthenticatorConfigurationUrl);
+                        }
+                    }
                 }
                 if (h2AuthenticatorConfigurationUrl == null) {
+                    if (trace.isDebugEnabled()) {
+                        trace.debug("DefaultAuthenticator.config: default configuration");
+                    }
                     defaultConfiguration();
                 } else {
                     configureFromUrl(h2AuthenticatorConfigurationUrl);
                 }
             } catch (Exception e) {
+                trace.error(e, "DefaultAuthenticator.config: an error occurred during configuration from {0} ", h2AuthenticatorConfigurationUrl);
                 throw new AuthConfigException("Failed to configure authentication from " + h2AuthenticatorConfigurationUrl,
                         e);
             }

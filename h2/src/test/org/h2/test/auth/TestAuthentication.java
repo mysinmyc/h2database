@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
@@ -27,8 +28,6 @@ import org.h2.security.auth.impl.JaasCredentialsValidator;
 import org.h2.security.auth.impl.StaticRolesMapper;
 import org.h2.security.auth.impl.StaticUserCredentialsValidator;
 import org.h2.test.TestBase;
-import org.h2.util.MathUtils;
-import org.postgresql.core.Utils;
 
 public class TestAuthentication extends TestBase {
 
@@ -40,7 +39,7 @@ public class TestAuthentication extends TestBase {
 
     String getExternalUserPassword() {
         if (externalUserPassword == null) {
-            externalUserPassword = Utils.toHexString(MathUtils.secureRandomBytes(10));
+            externalUserPassword = UUID.randomUUID().toString();
         }
         return externalUserPassword;
     }

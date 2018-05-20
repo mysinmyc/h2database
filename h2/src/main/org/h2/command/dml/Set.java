@@ -18,6 +18,7 @@ import org.h2.engine.Setting;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
+import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
@@ -548,8 +549,10 @@ public class Set extends Prepared {
                 database.setAuthenticator(AuthenticatorBuilder.buildAuthenticator(authenticatorString));
                 addOrUpdateSetting(name,"'"+authenticatorString+"'",0);
             } catch (Exception e) {
-                //Errors during starting are ignored to allow to open the database 
-                if (database.isStarting()==false) {
+                //Errors during start are ignored to allow to open the database 
+                if (database.isStarting()) {
+                    database.getTrace(Trace.DATABASE).error(e, "SET AUTHENTICATOR: failed to set authenticator {0} during database start",authenticatorString);
+                } else {
                     throw DbException.convert(e);
                 }
             }
